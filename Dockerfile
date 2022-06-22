@@ -52,6 +52,6 @@ COPY --chown=www-data /public_html /var/www/html/
 
 # Generate an optimized autoloader after copying the source files to the container
 # RUN composer dump-autoload --optimize
-
+EXPOSE 5555
 # Change ownership of the root folder to www-data
 # RUN chown -R www-data:www-data vendor/
