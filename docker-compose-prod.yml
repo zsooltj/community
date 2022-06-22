@@ -1,0 +1,71 @@
+version: "3.2"
+services:
+  php:
+    build:
+      context: "./php/"
+      args:
+       PHP_VERSION: ${PHP_VERSION}
+       dockerfile: Dockerfile
+    networks:
+      - backend
+    volumes:
+      - ${PROJECT_ROOT}/:/var/www/html/
+    container_name: rubikcomm_php
+    links:
+      - mysql
+  apache:
+    build:
+      context: "./apache/"
+      args:
+        APACHE_VERSION: ${APACHE_VERSION}
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8001:80"
+      - "4430:443"
+    volumes:
+      - ${PROJECT_ROOT}/:/var/www/html/
+    container_name: rubikcomm_apache
+  mysql:
+    image: mysql:${MYSQL_VERSION:-latest}
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - data:/var/lib/mysql
+    networks:
+      - backend
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_HOST: "${DB_HOST}"
+    container_name: rubikcomm_mysql
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: rubikcomm_pma
+    ports:
+      - 8080:80
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: rootpassword
+      PMA_PORT: 3306
+    networks:
+      - backend
+    links:
+      - mysql
+    restart: always
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+volumes:
+  data:
